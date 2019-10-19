@@ -284,18 +284,24 @@ rule dummyInferFromCrossRule {
 //		makeInference?
 
 rule inferFromS1xS1_100A{
-	when {
-		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
-		c: Cross c.name === cName;
-		s1: Strain s.name === c.strains[0] && s.name === c.strains[1] && !s.partialConclusions {phenotype: p, partialConclusions: pC};
-	}
-	then {
-	    assert(pC, new )
-		modify(prob, "curCross", null);
-		retract(c);
-		modify(prob, "subgoal", "makeInferences");
-	}
-}
+ 	when {
+ 		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
+ 		c: Cross c.name === cName && c.offspringInt[0] === 100;
+ 		s1: Strain s1.name === c.strains[0] && s1.name === c.strains[1] && s1.partialConclusions=="" && s1.finalConclusion=="" {phenotype: p, partialConclusions: pC, finalConclusion: fC};
+ 	}
+ 	then {
+ 	    modify(s1, "partialConclusions", "homozygous");
+ 		modify(prob, "subgoal", "makeInferences");
+ 	}
+ }
+ //Rest of the inferFromCross Rules
+
+ //TODO rule inferFromS1xS2_100A
+ //TODO rule inferFromS1xS3_100B
+ //TODO rule inferFromS1xS2_75A
+ //TODO rule inferFromS1xS1_75A
+ //TODO rule inferFromS1xS3_50B
+
 
 //--------------------------------------------------------------------------------------------
 //
@@ -305,12 +311,13 @@ rule inferFromS1xS1_100A{
 //
 //--------------------------------------------------------------------------------------------
 
-rule makeInferenceForS1xS1{
-    when{
-    }
-    then{
-    }
-}
+//TODO makeInferenceFromS1xS2_HR
+//TODO makeInferenceFromS1xS3_HR
+//TODO makeInferenceFromS1xS2_HET
+//TODO makeInferenceFromS1xS2_part_HD
+//TODO makeInferenceFromS1xS3_HET
+//TODO makeInferenceFromTwoPartial - This rule makes inference of final conclusion when both partial conclusions has been made for one strain
+
 
 // doneInferencing
 // IF we have a makeInferences subgoal
@@ -326,6 +333,25 @@ rule doneInferencing {
 		halt();
 	}
 }
+
+rule makeInferenceForS1xS1_100A{
+    when{
+    prob: Problem prob.subgoal === "enterInferences";
+    s1: Strain  (s1.partialConclusions && s1.partialConclusionWritten === false) || (s1.finalConclusion && s1.finalConclusionWritten===false)
+    {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
+    }
+    then{
+        if(checkSAI({selection: ieP, action: "UpdateComboBox", input: pC})){
+            modify(prob, "partialConclusionWritten", true);
+            modify(prob, "curCross", null);
+            retract(c);
+            halt();
+        }else{
+            backtrack();
+        }
+    }
+}
+
 // Notes re dummyInferFromCrossRule
 // 1. This is NOT a dummy rule; i.e., this rule will be needed in the final version of 
 //		your model
@@ -379,6 +405,6 @@ rule doneWithMandatoryInput {
 // You will need to write a done rule.
 //
 //--------------------------------------------------------------------------------------------
-
+//TODO Done rule
 // Note: Should the done rule test for a specific subgoal?  Which subgoal?
 
