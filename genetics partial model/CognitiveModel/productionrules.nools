@@ -334,8 +334,6 @@ rule inferFromS1xS1_100A{
     then{
         if(checkSAI({selection: ieF, action: "UpdateComboBox", input: fC})){
             modify(prob, "finalConclusionWritten", true);
-            modify(prob, "curCross", null);
-            retract(c);
             halt();
         }else{
             backtrack();
@@ -386,7 +384,7 @@ rule doneInferencing {
 rule enterInference_partial{
     when{
         prob: Problem prob.subgoal === "enterInferences";
-        s1: Strain  (s1.partialConclusions!==[] && s1.partialConclusionWritten === false) || (s1.finalConclusion && s1.finalConclusionWritten===false)
+        s1: Strain  (s1.partialConclusions!==[] && s1.partialConclusionWritten === false)
           {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
     }
     then{
