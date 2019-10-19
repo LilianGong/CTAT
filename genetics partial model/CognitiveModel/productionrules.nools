@@ -297,7 +297,6 @@ rule inferFromS1xS1_100A{
  	        modify(s1, "partialConclusions", pC);
  	        console.log(pC + " inserted!");
  		}
- 		modify(prob, "subgoal", "makeInferences");
  	}
  }
  //Rest of the inferFromCross Rules
@@ -309,9 +308,9 @@ rule inferFromS1xS1_100A{
  rule inferFromS1xS3_100B{
  	when {
  		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
- 		c: Cross c.name === cName && c.offspringInt[0] === 100;
- 		s1: Strain s1.name in c.strains && s1.partialConclusions==[] && s1.finalConclusion=="" && c.offspringInt[1] === s1.phenotype; 
- 		s3: Strain s3.name in c.strains && s1.phenotype != s3.phenotype && s3.partialConclusions==[] && s3.finalConclusion=="";
+ 		c: Cross c.name === cName && c.offspringInt[0] === 100 {offspringInt: off, strains: s};
+ 		s1: Strain s.includes(s1.name)  && s1.finalConclusion=="" && off.includes(s1.phenotype);
+ 		s3: Strain s.includes(s3.name) && s1.phenotype != s3.phenotype  && s3.finalConclusion=="";
  		//s1: Strain s1.name in c.strains && s1.partialConclusions=="" && s1.finalConclusion=="" && c.offspringInt[1] === s1.name;
  		
  	}
@@ -320,26 +319,11 @@ rule inferFromS1xS1_100A{
  	    modify(s1, "finalConclusionWritten", false);
  	    modify(s3, "finalConclusion", "homozygous recessive");
  	    modify(s3, "finalConclusionWritten", false);
- 		modify(prob, "subgoal", "makeInferences");
  		//halt();
  	}
  }
 
- rule enterInference_final{
-    when{
-    prob: Problem prob.subgoal === "enterInferences";
-    s1: Strain s1.finalConclusion && s1.finalConclusionWritten==false
-    {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
-    }
-    then{
-        if(checkSAI({selection: ieF, action: "UpdateComboBox", input: fC})){
-            modify(prob, "finalConclusionWritten", true);
-            halt();
-        }else{
-            backtrack();
-        }
-    }
-}
+
  //TODO rule inferFromS1xS2_75A
  //TODO rule inferFromS1xS1_75A
  //TODO rule inferFromS1xS3_50B
@@ -381,6 +365,24 @@ rule doneInferencing {
 	}
 }
 
+
+
+// Notes re dummyInferFromCrossRule
+// 1. This is NOT a dummy rule; i.e., this rule will be needed in the final version of 
+//		your model
+// Questions to help your understanding
+// 1. Why is this rule needed?
+// 2. Why is it critical that is has low salience? (This may be more clear when you  have 
+//		additional rules, but perhaps you can already see why before you write those rules.)
+
+//--------------------------------------------------------------------------------------------
+//
+// Rules for the enterInferences subgoal
+//
+// You will need to write more rules for this subgoal.
+//
+//--------------------------------------------------------------------------------------------
+
 rule enterInference_partial{
     when{
         prob: Problem prob.subgoal === "enterInferences";
@@ -404,21 +406,21 @@ rule enterInference_partial{
     }
 }
 
-// Notes re dummyInferFromCrossRule
-// 1. This is NOT a dummy rule; i.e., this rule will be needed in the final version of 
-//		your model
-// Questions to help your understanding
-// 1. Why is this rule needed?
-// 2. Why is it critical that is has low salience? (This may be more clear when you  have 
-//		additional rules, but perhaps you can already see why before you write those rules.)
-
-//--------------------------------------------------------------------------------------------
-//
-// Rules for the enterInferences subgoal
-//
-// You will need to write more rules for this subgoal.
-//
-//--------------------------------------------------------------------------------------------
+ rule enterInference_final{
+    when{
+        prob: Problem prob.subgoal === "enterInferences";
+        s1: Strain s1.finalConclusion && s1.finalConclusionWritten == false
+          {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
+    }
+    then{
+        if(checkSAI({selection: ieF, action: "UpdateComboBox", input: fC})){
+            modify(prob, "finalConclusionWritten", true);
+            halt();
+        }else{
+            backtrack();
+        }
+    }
+}
 
 // Notes doneWithMandatoryInput
 // IF we have an enterInferences subgoal
