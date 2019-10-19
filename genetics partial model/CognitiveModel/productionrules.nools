@@ -310,8 +310,8 @@ rule inferFromS1xS1_100A{
  	when {
  		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
  		c: Cross c.name === cName && c.offspringInt[0] === 100;
- 		s1: Strain s1.name in c.strains && s1.partialConclusions=="" && s1.finalConclusion=="" && c.offspringInt[1] === s1.phenotype; 
- 		s3: Strain s3.name in c.strains && s1.phenotype != s3.phenotype && s3.partialConclusions=="" && s3.finalConclusion=="";
+ 		s1: Strain s1.name in c.strains && s1.partialConclusions==[] && s1.finalConclusion=="" && c.offspringInt[1] === s1.phenotype; 
+ 		s3: Strain s3.name in c.strains && s1.phenotype != s3.phenotype && s3.partialConclusions==[] && s3.finalConclusion=="";
  		//s1: Strain s1.name in c.strains && s1.partialConclusions=="" && s1.finalConclusion=="" && c.offspringInt[1] === s1.name;
  		
  	}
@@ -335,7 +335,6 @@ rule inferFromS1xS1_100A{
         if(checkSAI({selection: ieF, action: "UpdateComboBox", input: fC})){
             modify(prob, "finalConclusionWritten", true);
             modify(prob, "curCross", null);
-            retract(c);
             halt();
         }else{
             backtrack();
