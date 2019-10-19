@@ -173,7 +173,7 @@ rule selectSecondStrainDiff {
 			modify(prob, "interfaceRows", intRows.slice(1));
 			modify(prob, "curCross", c.name);
 			modify(prob, "subgoal", "inferFromCross");
-//			halt();     // highly unusual!
+			//halt();     // highly unusual!
 		} else {
 			backtrack();
 		}
@@ -231,7 +231,7 @@ rule selectSecondStrainSame {
 			modify(prob, "interfaceRows", intRows.slice(1));
 			modify(prob, "curCross", c.name);
 			modify(prob, "subgoal", "inferFromCross");
-//			halt();    // highly unusual!
+			//halt();    // highly unusual!
 		} else {
 			backtrack();
 		}
@@ -302,8 +302,46 @@ rule inferFromS1xS1_100A{
  }
  //Rest of the inferFromCross Rules
 
+
  //TODO rule inferFromS1xS2_100A (no inference)
+
  //TODO rule inferFromS1xS3_100B
+ rule inferFromS1xS3_100B{
+ 	when {
+ 		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
+ 		c: Cross c.name === cName && c.offspringInt[0] === 100;
+ 		s1: Strain s1.name in c.strains && s1.partialConclusions=="" && s1.finalConclusion=="" && c.offspringInt[1] === s1.phenotype; 
+ 		s3: Strain s3.name in c.strains && s1.phenotype != s3.phenotype && s3.partialConclusions=="" && s3.finalConclusion=="";
+ 		//s1: Strain s1.name in c.strains && s1.partialConclusions=="" && s1.finalConclusion=="" && c.offspringInt[1] === s1.name;
+ 		
+ 	}
+ 	then {
+ 	    modify(s1, "finalConclusion", "homozygous dominant");
+ 	    modify(s1, "finalConclusionWritten", false);
+ 	    modify(s3, "finalConclusion", "homozygous recessive");
+ 	    modify(s3, "finalConclusionWritten", false);
+ 		modify(prob, "subgoal", "makeInferences");
+ 		//halt();
+ 	}
+ }
+
+ rule enterInference_final{
+    when{
+    prob: Problem prob.subgoal === "enterInferences";
+    s1: Strain s1.finalConclusion && s1.finalConclusionWritten==false
+    {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
+    }
+    then{
+        if(checkSAI({selection: ieF, action: "UpdateComboBox", input: fC})){
+            modify(prob, "finalConclusionWritten", true);
+            modify(prob, "curCross", null);
+            retract(c);
+            halt();
+        }else{
+            backtrack();
+        }
+    }
+}
  //TODO rule inferFromS1xS2_75A
  //TODO rule inferFromS1xS1_75A
  //TODO rule inferFromS1xS3_50B
@@ -345,7 +383,7 @@ rule doneInferencing {
 	}
 }
 
-rule makeInferenceForS1xS1_100A{
+rule enterInference_partial{
     when{
         prob: Problem prob.subgoal === "enterInferences";
         s1: Strain  (s1.partialConclusions!==[] && s1.partialConclusionWritten === false) || (s1.finalConclusion && s1.finalConclusionWritten===false)
