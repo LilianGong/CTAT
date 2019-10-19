@@ -387,7 +387,7 @@ rule enterInference_partial{
     when{
         prob: Problem prob.subgoal === "enterInferences";
         s1: Strain  (s1.partialConclusions!==[] && s1.partialConclusionWritten === false)
-          {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
+          {partialConclusions: pC, iePartialConclusions: ieP};
     }
     then{
         if(checkSAI({selection: ieP, action: "UpdateComboBox", input: pC},
@@ -410,7 +410,7 @@ rule enterInference_partial{
     when{
         prob: Problem prob.subgoal === "enterInferences";
         s1: Strain s1.finalConclusion && s1.finalConclusionWritten == false
-          {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
+          {finalConclusion: fC, ieFinalConclusion: ieF};
     }
     then{
         if(checkSAI({selection: ieF, action: "UpdateComboBox", input: fC})){
