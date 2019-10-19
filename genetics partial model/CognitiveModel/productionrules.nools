@@ -288,7 +288,7 @@ rule inferFromS1xS1_100A{
  	when {
  		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
  		c: Cross c.name === cName && c.offspringInt[0] === 100;
- 		s1: Strain s1.name === c.strains[0] && s1.name === c.strains[1] && s1.partialConclusions=="" && s1.finalConclusion=="" {phenotype: p, partialConclusions: pC, finalConclusion: fC};
+ 		s1: Strain s1.name === c.strains[0] && s1.name === c.strains[1] && s1.partialConclusions==[] && s1.finalConclusion=="" {phenotype: p, partialConclusions: pC, finalConclusion: fC};
  	}
  	then {
  	    console.log("inferFromS1xS1_100A MATCHED!!!");
