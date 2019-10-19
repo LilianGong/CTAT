@@ -264,6 +264,7 @@ rule selectSecondStrainSame {
 //    AND set the subgoal to makeInferences
 //
 rule dummyInferFromCrossRule {
+    salience: -5;
 	when {
 		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
 		c: Cross c.name === cName ;
@@ -290,13 +291,18 @@ rule inferFromS1xS1_100A{
  		s1: Strain s1.name === c.strains[0] && s1.name === c.strains[1] && s1.partialConclusions=="" && s1.finalConclusion=="" {phenotype: p, partialConclusions: pC, finalConclusion: fC};
  	}
  	then {
- 	    modify(s1, "partialConclusions", "homozygous");
+ 	    console.log("inferFromS1xS1_100A MATCHED!!!");
+ 	    if(!(pC.includes("homozygous"))) {
+ 	        pC.push("homozygous");
+ 	        modify(s1, "partialConclusions", pC);
+ 	        console.log(pC + " inserted!");
+ 		}
  		modify(prob, "subgoal", "makeInferences");
  	}
  }
  //Rest of the inferFromCross Rules
 
- //TODO rule inferFromS1xS2_100A
+ //TODO rule inferFromS1xS2_100A (no inference)
  //TODO rule inferFromS1xS3_100B
  //TODO rule inferFromS1xS2_75A
  //TODO rule inferFromS1xS1_75A
@@ -312,6 +318,11 @@ rule inferFromS1xS1_100A{
 //--------------------------------------------------------------------------------------------
 
 //TODO makeInferenceFromS1xS2_HR
+//rule makeInferenceFromS1xS2_HR{
+//    when{
+//    }then{
+//    }
+//}
 //TODO makeInferenceFromS1xS3_HR
 //TODO makeInferenceFromS1xS2_HET
 //TODO makeInferenceFromS1xS2_part_HD
@@ -336,15 +347,20 @@ rule doneInferencing {
 
 rule makeInferenceForS1xS1_100A{
     when{
-    prob: Problem prob.subgoal === "enterInferences";
-    s1: Strain  (s1.partialConclusions && s1.partialConclusionWritten === false) || (s1.finalConclusion && s1.finalConclusionWritten===false)
-    {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
+        prob: Problem prob.subgoal === "enterInferences";
+        s1: Strain  (s1.partialConclusions!==[] && s1.partialConclusionWritten === false) || (s1.finalConclusion && s1.finalConclusionWritten===false)
+          {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
     }
     then{
-        if(checkSAI({selection: ieP, action: "UpdateComboBox", input: pC})){
+        if(checkSAI({selection: ieP, action: "UpdateComboBox", input: pC},
+        function(studentSAI, tutorSAI){
+            console.log("student input: " + studentSAI.input + " | tutor expects: " + tutorSAI.input);
+            let ret = (tutorSAI.input.includes(studentSAI.input));
+            console.log("SAI Match result: " + ret);
+            return ret;
+        }
+        )){
             modify(prob, "partialConclusionWritten", true);
-            modify(prob, "curCross", null);
-            retract(c);
             halt();
         }else{
             backtrack();
