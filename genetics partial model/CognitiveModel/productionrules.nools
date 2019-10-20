@@ -321,8 +321,8 @@ rule inferFromS1xS3_50B{
 	when {
  		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
  		c: Cross c.name === cName && c.offspringInt[0] === 50 {offspringInt: off, strains: s};
- 		s1: Strain s.includes(s1.name)  && s1.finalConclusion=="" {partialConclusions: pC1};
- 		s3: Strain s.includes(s3.name)  && s3.finalConclusion=="" && s1.phenotype != s3.phenotype {partialConclusions: pC3};
+ 		s1: Strain s.includes(s1.name)   {partialConclusions: pC1};
+ 		s3: Strain s.includes(s3.name)  && s1.phenotype != s3.phenotype {partialConclusions: pC3};
  		
  	}
  	then {
@@ -401,7 +401,7 @@ rule makeInferenceFromS1xS2_HET{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
-        s2: Strain s2.finalConclusion=="" && s2.phenotype===p && s2.partialConclusions.includes("heterozygous or homozygous recessive");
+        s2: Strain s2.finalConclusion == "" && s2.phenotype == p && s2.partialConclusions.includes("homozygous recessive or heterozygous");
     }
     then{
         modify(s2, "finalConclusion", "heterozygous");
@@ -546,7 +546,7 @@ rule enterPartialH{
 rule enterPartialHETOrHR{
     when{
         prob: Problem prob.subgoal==="enterInferences" {strains: s};
-        s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous recessive or heterozygous") && s1.partialConclusionWritten === false && s1.finalConclusionWritten === false {partialConclusions: p, iePartialConclusions: ie};
+        s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous recessive or heterozygous") && s1.partialConclusionWritten === false && s1.finalConclusion == "" {partialConclusions: p, iePartialConclusions: ie};
     }then{
         if(checkSAI({selection: ie, action: "UpdateComboBox", input: "homozygous recessive or heterozygous"})){
             modify(s1, "partialConclusionWritten", true);
