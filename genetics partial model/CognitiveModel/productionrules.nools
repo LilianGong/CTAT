@@ -509,7 +509,7 @@ rule enterHET{
 rule enterPartialH{
     when{
         prob: Problem prob.subgoal==="enterInferences" {strains: s};
-        s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous") && s1.partialConclusionWritten === false && s1.finalConclusionWritten === false {partialConclusions: p, ieFinalConclusion: ie};
+        s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous") && s1.partialConclusionWritten === false && s1.finalConclusionWritten === false {partialConclusions: p, iePartialConclusions: ie};
     }then{
         if(checkSAI({selection: ie, action: "UpdateComboBox", input: "homozygous"})){
             modify(s1, "finalConclusionWritten", true);
@@ -523,7 +523,7 @@ rule enterPartialH{
 rule enterPartialHETOrHR{
     when{
         prob: Problem prob.subgoal==="enterInferences" {strains: s};
-        s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous recessive or heterozygous") && s1.partialConclusionWritten === false && s1.finalConclusionWritten === false {partialConclusions: p, ieFinalConclusion: ie};
+        s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous recessive or heterozygous") && s1.partialConclusionWritten === false && s1.finalConclusionWritten === false {partialConclusions: p, iePartialConclusions: ie};
     }then{
         if(checkSAI({selection: ie, action: "UpdateComboBox", input: "homozygous recessive or heterozygous"})){
             modify(s1, "finalConclusionWritten", true);
