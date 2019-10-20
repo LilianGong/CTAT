@@ -432,14 +432,22 @@ rule makeInferenceFromS1xS3_HET{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="homezygous recessive" {phenotype:p};
-        s3: Strain s3.finalConclusion=="" && s3.phenotype!==p;
+        s3: Strain s3.finalConclusion=="" && s3.partialConclusions.includes("homozygous recessive or heterozygous") && s3.phenotype!==p;
     }then{
         modify(s3, "finalConclusion", "heterozygous");
     }
 }
 
 //TODO makeInferenceFromTwoPartial - This rule makes inference of final conclusion when both partial conclusions has been made for one strain
-
+rule makeInferenceFromTwoPartial{
+    salience:-4;
+    when{
+        prob: Problem prob.subgoal==="makeInferences" {strains: s};
+        s1: Strain s.includes(s1.name) && s1.partialConclusions.length === 2;
+    }then{
+        modify(s1, "finalConclusion", "homozygous recessive");
+    }
+}
 
 // doneInferencing
 // IF we have a makeInferences subgoal
@@ -463,7 +471,6 @@ rule doneInferencing {
 // You will need to write more rules for this subgoal.
 //
 //--------------------------------------------------------------------------------------------
-
 rule enterHR{
     when{
         prob: Problem prob.subgoal==="enterInferences" {strains: s};
