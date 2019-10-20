@@ -284,11 +284,24 @@ rule dummyInferFromCrossRule {
 // 1. What's the critical difference  between subgoal inferFromCross and subgoal 
 //		makeInference?
 
+// Rule inferFromS1xS1_100A in English
+// IF 
+//there is a goal to determine the gene type of S 
+// And S1’s partial conclusion is not defined
+// And S1’s final conclusion is not defined
+// And the two strains are the identical plant
+// And the cross for S1xS1 result is equal to 100 percent of phenotype A
+// THEN
+// Write S1’s partial conclusion as Homozygous
+
+
+
 rule inferFromS1xS1_100A{
  	when {
  		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
  		c: Cross c.name === cName && c.offspringInt[0] === 100;
- 		s1: Strain s1.name === c.strains[0] && s1.name === c.strains[1] && s1.partialConclusions==[] && s1.finalConclusion=="" {phenotype: p, partialConclusions: pC, finalConclusion: fC};
+ 		s1: Strain s1.name === c.strains[0] && s1.name === c.strains[1] && s1.finalConclusion=="" {phenotype: p, partialConclusions: pC, finalConclusion: fC};
+ 		//&& s1.name === c.strains[1] && s1.partialConclusions==[] && s1.finalConclusion=="" 
  	}
  	then {
  	    console.log("inferFromS1xS1_100A MATCHED!!!");
@@ -319,7 +332,6 @@ rule inferFromS1xS1_100A{
  	    modify(s1, "finalConclusionWritten", false);
  	    modify(s3, "finalConclusion", "homozygous recessive");
  	    modify(s3, "finalConclusionWritten", false);
- 		//halt();
  	}
  }
 
@@ -398,7 +410,7 @@ rule enterInference_partial{
             return ret;
         }
         )){
-            modify(prob, "partialConclusionWritten", true);
+            modify(s1, "partialConclusionWritten", true);
             halt();
         }else{
             backtrack();
@@ -409,12 +421,12 @@ rule enterInference_partial{
  rule enterInference_final{
     when{
         prob: Problem prob.subgoal === "enterInferences";
-        s1: Strain s1.finalConclusion && s1.finalConclusionWritten == false
-          {finalConclusion: fC, ieFinalConclusion: ieF};
+        s1: Strain s1.finalConclusion!=="" && s1.finalConclusionWritten == false
+          {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC,ieFinalConclusion: ieF};
     }
     then{
         if(checkSAI({selection: ieF, action: "UpdateComboBox", input: fC})){
-            modify(prob, "finalConclusionWritten", true);
+            modify(s1, "finalConclusionWritten", true);
             halt();
         }else{
             backtrack();
