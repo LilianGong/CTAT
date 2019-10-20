@@ -425,49 +425,85 @@ rule inferFromS1xS3_50B{
 //
 //--------------------------------------------------------------------------------------------
 
-//TODO makeInferenceFromS1xS2_HR
+
+// Rule makeInferenceFromS1xS2_HR in English
+// IF 
+//there is a goal to determine the gene type of S 
+// And S1’s final conclusion is Homozygous Recessive
+// And the phenotype of S1 is the same as the phenotype of S2
+// THEN
+// Write S2’s final conclusion as Homozygous Recessive
+
 rule makeInferenceFromS1xS2_HR{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="homozygous recessive" {phenotype:p};
-        s2: Strain s2.finalConclusion=="" s2.phenotype===p;
-    }then{
+        s2: Strain s2.finalConclusion=="" && s2.phenotype===p;
+    }
+    then{
         modify(s2, "finalConclusion", "homozygous recessive");
     }
 }
 
-//TODO makeInferenceFromS1xS3_HR
+
+//Rule makeInferenceFromS1xS3_HR in English
+// IF 
+//there is a goal to determine the gene type of S 
+// And S1’s final conclusion is Heterozygous or Homozygous Dominant
+// And the phenotype of S1 is the different from the phenotype of S3
+// THEN
+// Write S3’s final conclusion as Homozygous Recessive
+
 rule makeInferenceFromS1xS3_HR{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
-        s3: Strain s3.finalConclusion=="" s3.phenotype!==p;
-    }then{
+        s3: Strain s3.finalConclusion=="" && s3.phenotype!==p;
+    }
+    then{
         modify(s3, "finalConclusion", "homozygous recessive");
     }
 }
-
-//TODO makeInferenceFromS1xS2_HET
+//Rule makeInferenceFromS1xS2_HET in English
+// IF 
+//there is a goal to determine the gene type of S 
+// And S1’s final conclusion is Heterozygous or Homozygous Dominant
+// And the phenotype of S1 is the same as the phenotype of S2
+// And S2’s partial conclusion is “Heterozygous or Homozygous recessive”
+// THEN
+// Write S2’s final conclusion as Heterozygous
 rule makeInferenceFromS1xS2_HET{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
-        s2: Strain s2.finalConclusion=="" s2.phenotype===p s2.partialConclusions.includes("heterozygous or homozygous recessive");
-    }then{
+        s2: Strain s2.finalConclusion=="" && s2.phenotype===p && s2.partialConclusions.includes("heterozygous or homozygous recessive");
+    }
+    then{
         modify(s2, "finalConclusion", "heterozygous");
     }
 }
+// Rule makeInferenceFromS1xS2_part_HD in English
+// inferFromS1xS2_part_HD
+// IF there is a goal to determine the gene type of S 
+// And S1’s final conclusion is Heterozygous or Homozygous Dominant
+// And the phenotype of S1 is the same as the phenotype of S2
+// And S2’s partial conclusion is “Homozygous”
+// THEN
+// Write S2’s final conclusion as Homozygous Dominant
 
-//TODO makeInferenceFromS1xS2_part_HD
 rule makeInferenceFromS1xS2_part_HD{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
-        s2: Strain s2.finalConclusion=="" s2.phenotype!==p s2.partialConclusions.includes("homozygous");
-    }then{
+        s2: Strain s2.finalConclusion=="" && s2.phenotype!==p && s2.partialConclusions.includes("homozygous");
+    }
+    then{
         modify(s2, "finalConclusion", "homozygous dominant");
     }
 }
+
+
+
 //TODO makeInferenceFromS1xS3_HET
 rule makeInferenceFromS1xS3_HET{
     when{
