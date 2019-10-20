@@ -382,7 +382,7 @@ rule makeInferenceFromS1xS3_HR{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
-        s3: Strain s3.finalConclusion=="" && s3.phenotype!==p;
+        s3: Strain s3.finalConclusion=="" && s3.phenotype!== p;
     }
     then{
         modify(s3, "finalConclusion", "homozygous recessive");
@@ -446,11 +446,18 @@ rule makeInferenceFromS1xS3_HET{
 }
 
 //TODO makeInferenceFromTwoPartial - This rule makes inference of final conclusion when both partial conclusions has been made for one strain
+// rule makeInferenceFromTwoPartial
+// IF 
+// there is a goal to determine the gene type of S 
+// And S1 has two partial conclusion
+// And S1 has no final conclusion
+// THEN
+// Write S1’s final conclusion as Homozygous recessive
 rule makeInferenceFromTwoPartial{
     salience:-4;
     when{
         prob: Problem prob.subgoal==="makeInferences" {strains: s};
-        s1: Strain s.includes(s1.name) && s1.partialConclusions.length === 2;
+        s1: Strain s.includes(s1.name) && s1.partialConclusions.length === 2 && s1.finalConclusion == "";
     }then{
         modify(s1, "finalConclusion", "homozygous recessive");
     }
@@ -527,7 +534,7 @@ rule enterPartialH{
         s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous") && s1.partialConclusionWritten === false && s1.finalConclusionWritten === false {partialConclusions: p, iePartialConclusions: ie};
     }then{
         if(checkSAI({selection: ie, action: "UpdateComboBox", input: "homozygous"})){
-            modify(s1, "finalConclusionWritten", true);
+            modify(s1, "partialConclusionWritten", true);
             modify(prob, "subgoal", "makeInferences");
         }else{
             backtrack();
@@ -541,7 +548,7 @@ rule enterPartialHETOrHR{
         s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous recessive or heterozygous") && s1.partialConclusionWritten === false && s1.finalConclusionWritten === false {partialConclusions: p, iePartialConclusions: ie};
     }then{
         if(checkSAI({selection: ie, action: "UpdateComboBox", input: "homozygous recessive or heterozygous"})){
-            modify(s1, "finalConclusionWritten", true);
+            modify(s1, "partialConclusionWritten", true);
             modify(prob, "subgoal", "makeInferences");
         }else{
             backtrack();
