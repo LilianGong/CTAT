@@ -426,14 +426,48 @@ rule inferFromS1xS3_50B{
 //--------------------------------------------------------------------------------------------
 
 //TODO makeInferenceFromS1xS2_HR
-//rule makeInferenceFromS1xS2_HR{
-//    when{
-//    }then{
-//    }
-//}
+rule makeInferenceFromS1xS2_HR{
+    when{
+        prob: Problem prob.subgoal==="makeInferences";
+        s1: Strain s1.finalConclusion==="homozygous recessive" {phenotype:p};
+        s2: Strain s2.finalConclusion=="" s2.phenotype===p;
+    }then{
+        modify(s2, "finalConclusion", "homozygous recessive");
+    }
+}
+
 //TODO makeInferenceFromS1xS3_HR
+rule makeInferenceFromS1xS3_HR{
+    when{
+        prob: Problem prob.subgoal==="makeInferences";
+        s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
+        s2: Strain s2.finalConclusion=="" s2.phenotype!==p;
+    }then{
+        modify(s2, "finalConclusion", "homozygous recessive");
+    }
+}
+
 //TODO makeInferenceFromS1xS2_HET
+rule makeInferenceFromS1xS3_HR{
+    when{
+        prob: Problem prob.subgoal==="makeInferences";
+        s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
+        s2: Strain s2.finalConclusion=="" s2.phenotype===p s2.partialConclusions.includes("heterozygous or homozygous recessive");
+    }then{
+        modify(s2, "finalConclusion", "heterozygous");
+    }
+}
+
 //TODO makeInferenceFromS1xS2_part_HD
+rule makeInferenceFromS1xS3_HR{
+    when{
+        prob: Problem prob.subgoal==="makeInferences";
+        s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
+        s2: Strain s2.finalConclusion=="" s2.phenotype!==p s2.partialConclusions.includes("homozygous");
+    }then{
+        modify(s2, "finalConclusion", "homozygous dominant");
+    }
+}
 //TODO makeInferenceFromS1xS3_HET
 //TODO makeInferenceFromTwoPartial - This rule makes inference of final conclusion when both partial conclusions has been made for one strain
 
@@ -475,7 +509,7 @@ rule enterInference_partial{
     when{
         prob: Problem prob.subgoal === "enterInferences";
         s1: Strain  (s1.partialConclusions!==[] && s1.partialConclusionWritten === false)
-          {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC, finalConclusionWritten: ieF};
+          {partialConclusions: pC, iePartialConclusions: ieP};
     }
     then{
         if(checkSAI({selection: ieP, action: "UpdateComboBox", input: pC},
