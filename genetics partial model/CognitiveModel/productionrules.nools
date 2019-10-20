@@ -293,9 +293,6 @@ rule dummyInferFromCrossRule {
 // And the cross for S1xS1 result is equal to 100 percent of phenotype A
 // THEN
 // Write S1’s partial conclusion as Homozygous
-
-
-
 rule inferFromS1xS1_100A{
  	when {
  		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
@@ -317,7 +314,20 @@ rule inferFromS1xS1_100A{
 
  //TODO rule inferFromS1xS2_100A (no inference)
 
- //TODO rule inferFromS1xS3_100B
+ 
+// Rule inferFromS1xS3_100B in English
+// IF 
+//there is a goal to determine the gene type of S 
+// And S1’s partial conclusion is not defined
+// And S1’s final conclusion is not defined
+// And S3’s partial conclusion is not defined
+// And S3’s final conclusion is not defined
+// And the phenotype of S1 is different from the phenotype of S3
+// And the cross for S1xS3 result is equal to 100 percent of phenotype B
+// THEN
+// Write S1’s final conclusion as Homozygous Recessive
+// Write S3’s final conclusion as Homozygous Dominant
+
  rule inferFromS1xS3_100B{
  	when {
  		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
@@ -336,9 +346,75 @@ rule inferFromS1xS1_100A{
  }
 
 
- //TODO rule inferFromS1xS2_75A
- //TODO rule inferFromS1xS1_75A
- //TODO rule inferFromS1xS3_50B
+// Rule inferFromS1xS2_75A in English
+// IF 
+//there is a goal to determine the gene type of S 
+// And S1’s partial conclusion is not defined
+// And S1’s final conclusion is not defined
+// And S2’s partial conclusion is not defined
+// And S2’s final conclusion is not defined
+// And the phenotype of S1 is the same as the phenotype of S2
+// And the cross for S1xS2 result is equal to 75 percent of phenotype A, and 25 percent of phenotype B
+// THEN
+// Write S1’s final conclusion as Heterozygous
+// Write S2’s final conclusion as Heterozygous
+
+rule inferFromS1xS2_75A{
+	when {
+ 		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
+ 		c: Cross c.name === cName && c.offspringInt[2] === 75 {offspringInt: off, strains: s};
+ 		s1: Strain s.includes(s1.name)  && s1.finalConclusion=="";
+ 		s2: Strain s.includes(s2.name)  && s2.finalConclusion=="";
+ 		//s1: Strain s1.name in c.strains && s1.partialConclusions=="" && s1.finalConclusion=="" && c.offspringInt[1] === s1.name;
+ 	}
+ 	then {
+ 	    modify(s1, "finalConclusion", "heterozygous");
+ 	    modify(s1, "finalConclusionWritten", false);
+ 	    modify(s2, "finalConclusion", "heterozygous");
+ 	    modify(s2, "finalConclusionWritten", false);
+ 	}
+
+}
+
+//TODO rule inferFromS1xS1_75A the same as inferFromS1xS2_75A
+
+// Rule inferFromS1xS3_50B in English
+// IF there is a goal to determine the gene type of S 
+// And S1’s partial conclusion is not defined
+// And S1’s final conclusion is not defined
+// And S3’s partial conclusion is not defined
+// And S3’s final conclusion is not defined
+// And the phenotype of S1 is different from the phenotype of S3
+// And the cross for S1xS3 result is equal to 50 percent of phenotype A, and 50 percent of phenotype B
+// THEN
+// Write S1’s partial conclusion as “Heterozygous or Homozygous recessive”
+// Write S3’s partial conclusion as “Heterozygous or Homozygous recessive”
+
+rule inferFromS1xS3_50B{
+	when {
+ 		prob: Problem prob.subgoal === "inferFromCross" {curCross: cName};
+ 		c: Cross c.name === cName && c.offspringInt[0] === 50 {offspringInt: off, strains: s};
+ 		s1: Strain s.includes(s1.name)  && s1.finalConclusion=="" {partialConclusions: pC1};
+ 		s3: Strain s.includes(s3.name)  && s3.finalConclusion=="" && s1.phenotype != s3.phenotype {partialConclusions: pC3};
+ 		
+ 	}
+ 	then {
+ 	    console.log("inferFromS1xS3_50B MATCHED!!!");
+ 	    if(!(pC1.includes("homozygous recessive or heterozygous"))) {
+ 	        pC1.push("homozygous recessive or heterozygous");
+ 	        modify(s1, "partialConclusions", pC1);
+ 	        console.log(pC1 + " inserted!");
+ 	    }
+ 	    if(!(pC3.includes("homozygous recessive or heterozygous"))) {
+ 	        pC3.push("homozygous recessive or heterozygous");
+ 	        modify(s3, "partialConclusions", pC3);
+ 	        console.log(pC3 + " inserted!");
+ 		}
+ 	}
+}
+ 
+
+
 
 
 //--------------------------------------------------------------------------------------------
