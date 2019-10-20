@@ -616,6 +616,7 @@ rule doneWithMandatoryInput {
 //--------------------------------------------------------------------------------------------
 //TODO Done rule
 rule done{
+    salience : -10;
     when{
         prob: Problem {strains: s};
         s1: Strain s1.n===1 && s1.finalConclusionWritten===true;
