@@ -82,19 +82,6 @@ rule bootstrap {
 //
 //--------------------------------------------------------------------------------------------
 
-// selectFirstStrain
-// IF there is a selectCross subgoal
-//    AND we have not selected the first strain for the current cross yet
-//    AND s is a Strain for which we have at least one remaining (untried) cross
-//            (call its name s1)
-//            (at this point we care not what that untried cross is, only that is exists)
-//    AND intRow is (the fact representing) the next unused row  in the interface
-//    AND ie is one of the open input fields (for entering a strain) in that row
-//  THEN
-//     Write s1 into ie  (i.e., select s as one of the strains to be used in the next cross)
-//     AND update the semantic representation of the problem (by storing in s1 in
-//     the firstStrainCurCross slot)
-//
 rule selectFirstStrain {
 	when {
 		prob: Problem prob.subgoal === "selectCross" && !prob.firstStrainCurCross && 
@@ -114,46 +101,8 @@ rule selectFirstStrain {
 		}
 	}
 }
-// Notes re selectFirstStrain
-// 1. The Nools construct "exists" (wrapped around a constraint) tests whether there is at
-//    least one way of satisfying the constraint, without generating a seperate (partial) 
-//    activation
-
-// Questions to help you understand the rule selectFirstStrain (Note: these questions
-//		may gradually become clear as you work on the model.  Same for the questions about
-//		other rules.)
-// 1. Does this rule allow students to first enter a strain in the second input field of a
-//    rowfirst (i.e., before entering one in the first field)? How, or how not?
-// 2. Does this rule allow students to skip rows of input fields? How or how not?
-// 3. Why does the rule not "remember"  (i.e., store in an appropriate place in WM) which 
-//    of the remaining untried crosses is matched?
-// 4. (Challenging but important): How does this rule allow (or model) entering a new cross
-//    only when all inferences that can be drawn from the previous cross have been entered 
-//    into the tutor interface? I.e., what rule condition ensures that the rule does not 
-//    match when there are still more inferences to be written? (Note: this behavior will
-//    also depend on other rules that you will need to write.)
-//
 
 
-// selectSecondStrainDiff
-// IF there is a selectCross subgoal
-//    AND we have selected the first strain for the current cross (with name s1)
-//    AND str2 is a Strain different from s1 (call its name s2)
-//    AND c is an (untried) cross with s1 and s2 as the strains
-//    AND r is (the fact representing) the first not-fully-completed row in the
-//              interface
-//    AND ie2 is (a fact representing) an open input field (for entering a strain) in row r
-//	  AND ie3 is (the fact representing) the result field (or offspring field) in row r
-//  THEN
-//     Write s2 into ie2  (i.e., select s2 as the second strain used in the next cross)
-//     AND (as tutor-performed action) write the offspring into ie3 and lock ie3
-//     AND Update the semantic representation of the problem by
-//			a. setting the slot firstStrainCurCross to null
-//			b. deleting the first entry from its interfaceRows slot (so this slot always
-//					lists only the unused rows)
-//			c. store c's name in  the curCross slot (needed later for making inferences)
-//     AND move on to the next subgoal (i.e., set prob's subgoal slot to "inferFromCross")
-//
 rule selectSecondStrainDiff {
 	when {
 		prob: Problem prob.subgoal === "selectCross" && prob.firstStrainCurCross  && 
@@ -179,40 +128,8 @@ rule selectSecondStrainDiff {
 		}
 	}
 }
-// Notes re selectSecondStrainDiff
-// 1. The Javascript function "slice" (used  on the rhs of this rule) is used to take a 
-//          slice of an Array; if you do not know this function, you might quickly look up
-//          some Javascript documentation
-//
-// Questions to help your understanding of rule selectSecondStrainDiff
-// 1. How does this rule prevent selecting a cross that already has been tried? (Note: this 
-//			behavior also depends on other rules you will need to write.)
-// 2. Why is it useful to set the firstStrainCurCross to null? (Hint: think of subsequent
-//			crosses the student might want to explore.)
-// 3. Why does this rule delete the entry from the prob's interfaceRows?
-// 4. Why does the rule not halt() upon finding that its observable action equals that
-//			of the student?   What is it that we want to happen "further down the chain?"
 
 
-// selectSecondStrainSame (for self-crosses)
-// IF there is a selectCross subgoal
-//    AND we have selected the first strain for the current cross (with name s1)
-//    AND c is an (untried) cross with s1 and s1 as the strains (i.e., crossing s1
-//			with itself)
-//    AND r is (the fact representing) the first not-fully-completed row in the
-//              interface
-//    AND ie2 is (a fact representing) an open input field (for entering a strain) in row r
-//	  AND ie3 is (the fact representing) the result field (or offspring field) in row r
-//  THEN
-//     Write s1 into ie2  (i.e., select s1 as the second strain used in the next cross)
-//     AND (as tutor-performed action) write the offspring into ie3 and lock ie3
-//     AND Update the semantic representation of the problem by
-//			a. setting the slot firstStrainCurCross to null
-//			b. deleting the first entry from its interfaceRows slot (so this slot always
-//					lists only the unused rows)
-//			c. store c's name in  the curCross slot (needed later for making inferences)
-//     AND move on to the next subgoal (i.e., set prob's subgoal slot to "inferFromCross")
-//
 rule selectSecondStrainSame {
 	when {
 		prob: Problem prob.subgoal === "selectCross" && prob.firstStrainCurCross  && 
@@ -237,12 +154,6 @@ rule selectSecondStrainSame {
 		}
 	}
 }
-// Notes re selectSecondStrainSame
-// 1. Note the right-hand side is virtually identical to that of selectSecondStrainDiff.
-//		Generally, such duplication is to be avoided in software engineering (Jonathan would
-//		cringe at this rule) but I found it easier to express the lhs separately for the 
-//		Same and Diff cases, rather than combine them in a single rule. (But of course 
-//		writing a single rule can be done.)
 
 
 //--------------------------------------------------------------------------------------------
@@ -275,14 +186,10 @@ rule dummyInferFromCrossRule {
 		modify(prob, "subgoal", "makeInferences");
 	}
 }
-// Notes re dummyInferFromCrossRule
-// 1. You are going to have a set of rules, based on your cognitive task analysis, that all
-//		follow this same patterns
-// 2. These rules are strict alternatives in that for any cross, only one applies.
-//
-// Questions to help your understanding
-// 1. What's the critical difference  between subgoal inferFromCross and subgoal 
-//		makeInference?
+
+
+//Rest of the inferFromCross Rules
+
 
 // Rule inferFromS1xS1_100A in English
 // IF 
@@ -309,10 +216,21 @@ rule inferFromS1xS1_100A{
  		}
  	}
  }
- //Rest of the inferFromCross Rules
 
 
- //TODO rule inferFromS1xS2_100A (no inference)
+
+// Rule inferFromS1xS2_100A in English (no inference)
+// ***** as it makes no inference, we don't have to write it down as rule *****
+// IF there is a goal to determine the gene type of S 
+// And S1’s partial conclusion is not defined
+// And S1’s final conclusion is not defined
+// And S2’s partial conclusion is not defined
+// And S2’s final conclusion is not defined
+// And the cross for S1xS2 result is equal to 100 percent of phenotype A
+// THEN
+// We cannot draw any conclusion
+// Do not change anything to the working memory
+
 
  
 // Rule inferFromS1xS3_100B in English
@@ -376,7 +294,16 @@ rule inferFromS1xS2_75A{
 
 }
 
-//TODO rule inferFromS1xS1_75A the same as inferFromS1xS2_75A
+// Rule inferFromS1xS1_75A in English
+// ***** as it can be fired as inferFromS1xS2_75A so we don't need to write down this one *****
+// IF there is a goal to determine the gene type of S 
+// And S1’s partial conclusion is not defined
+// And S1’s final conclusion is not defined
+// And the two strains are the identical plant
+// And the cross for S1xS1 result is equal to 75 percent of phenotype A, and 25 percent of phenotype B
+// THEN
+// Write S1’s final conclusion as Heterozygous
+
 
 // Rule inferFromS1xS3_50B in English
 // IF there is a goal to determine the gene type of S 
@@ -414,9 +341,6 @@ rule inferFromS1xS3_50B{
 }
  
 
-
-
-
 //--------------------------------------------------------------------------------------------
 //
 // Rules for the makeInferences subgoal
@@ -448,7 +372,7 @@ rule makeInferenceFromS1xS2_HR{
 
 //Rule makeInferenceFromS1xS3_HR in English
 // IF 
-//there is a goal to determine the gene type of S 
+// there is a goal to determine the gene type of S 
 // And S1’s final conclusion is Heterozygous or Homozygous Dominant
 // And the phenotype of S1 is the different from the phenotype of S3
 // THEN
@@ -513,6 +437,7 @@ rule makeInferenceFromS1xS3_HET{
         modify(s3, "finalConclusion", "heterozygous");
     }
 }
+
 //TODO makeInferenceFromTwoPartial - This rule makes inference of final conclusion when both partial conclusions has been made for one strain
 
 
@@ -530,16 +455,6 @@ rule doneInferencing {
 		halt();
 	}
 }
-
-
-
-// Notes re dummyInferFromCrossRule
-// 1. This is NOT a dummy rule; i.e., this rule will be needed in the final version of 
-//		your model
-// Questions to help your understanding
-// 1. Why is this rule needed?
-// 2. Why is it critical that is has low salience? (This may be more clear when you  have 
-//		additional rules, but perhaps you can already see why before you write those rules.)
 
 //--------------------------------------------------------------------------------------------
 //
@@ -657,13 +572,6 @@ rule enterPartialHETOrHR{
 //    }
 //}
 
-// Notes doneWithMandatoryInput
-// IF we have an enterInferences subgoal
-//    AND we do not have a strain with a final conclusion that has not been written
-//    AND we do not have a strain with one or more partial conclusions that have not
-//           been written, unless a full conclusion has been written for that strain
-// THEN
-//    Move on to the selectCross subgoal
 
 rule doneWithMandatoryInput {
 	when {
@@ -675,17 +583,7 @@ rule doneWithMandatoryInput {
 		modify(prob, "subgoal", "selectCross");
 	}
 }
-// Notes doneWithMandatoryInput
-// 1. Rule uses "not" on the rhs.
-// 2. Small subtlety:   It is OK to not write a partial conclusion, for a given strain, if
-//		there is a final conclusion for that same strain. (It sometimes happens that
-//		following a cross, both a partial concluson and a  final conclusion are inferred,
-//		both for the same strain.
-//
-// Questions to help your understanding
-// 1. How does this rule help ensure that the student can enter the next cross only after
-//		all inferences for the current cross have been entered?
-//
+
 
 //--------------------------------------------------------------------------------------------
 //
