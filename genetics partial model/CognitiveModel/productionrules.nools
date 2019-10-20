@@ -253,7 +253,6 @@ rule inferFromS1xS1_100A{
  		s1: Strain s.includes(s1.name)  && s1.finalConclusion=="" && off.includes(s1.phenotype);
  		s3: Strain s.includes(s3.name) && s1.phenotype != s3.phenotype  && s3.finalConclusion=="";
  		//s1: Strain s1.name in c.strains && s1.partialConclusions=="" && s1.finalConclusion=="" && c.offspringInt[1] === s1.name;
- 		
  	}
  	then {
  	    modify(s1, "finalConclusion", "homozygous dominant");
