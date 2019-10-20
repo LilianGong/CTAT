@@ -376,13 +376,22 @@ rule makeInferenceFromS1xS3_HR{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
-        s2: Strain s2.finalConclusion=="" s2.phenotype===p;
+        s2: Strain s2.finalConclusion=="" s2.phenotype===p s2.partialConclusions.includes("heterozygous or homozygous recessive");
     }then{
         modify(s2, "finalConclusion", "heterozygous");
     }
 }
 
 //TODO makeInferenceFromS1xS2_part_HD
+rule makeInferenceFromS1xS3_HR{
+    when{
+        prob: Problem prob.subgoal==="makeInferences";
+        s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
+        s2: Strain s2.finalConclusion=="" s2.phenotype!==p s2.partialConclusions.includes("homozygous");
+    }then{
+        modify(s2, "finalConclusion", "homozygous dominant");
+    }
+}
 //TODO makeInferenceFromS1xS3_HET
 //TODO makeInferenceFromTwoPartial - This rule makes inference of final conclusion when both partial conclusions has been made for one strain
 
