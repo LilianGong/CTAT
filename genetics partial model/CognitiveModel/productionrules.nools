@@ -616,5 +616,17 @@ rule doneWithMandatoryInput {
 //
 //--------------------------------------------------------------------------------------------
 //TODO Done rule
+rule done{
+    when{
+        prob: Problem {strains: s};
+        s1: Strain s1.n===1 && s1.finalConclusionWritten===true;
+        s2: Strain s2.n===2 && s2.finalConclusionWritten===true;
+        s3: Strain s3.n===3 && s3.finalConclusionWritten===true;
+    }then{
+        if(checkSAI({selection: "done", action: "ButtonPressed", input:"don't_care"})){
+            halt();
+        }
+    }
+}
 // Note: Should the done rule test for a specific subgoal?  Which subgoal?
 
