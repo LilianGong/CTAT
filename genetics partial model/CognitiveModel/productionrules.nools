@@ -388,8 +388,6 @@ rule makeInferenceFromS1xS3_HR{
         modify(s3, "finalConclusion", "homozygous recessive");
     }
 }
-
-
 //Rule makeInferenceFromS1xS2_HET in English
 // IF 
 //there is a goal to determine the gene type of S 
@@ -398,7 +396,6 @@ rule makeInferenceFromS1xS3_HR{
 // And S2’s partial conclusion is “Heterozygous or Homozygous recessive”
 // THEN
 // Write S2’s final conclusion as Heterozygous
-
 rule makeInferenceFromS1xS2_HET{
     when{
         prob: Problem prob.subgoal==="makeInferences";
@@ -409,7 +406,6 @@ rule makeInferenceFromS1xS2_HET{
         modify(s2, "finalConclusion", "heterozygous");
     }
 }
-
 // Rule makeInferenceFromS1xS2_part_HD in English
 // inferFromS1xS2_part_HD
 // IF there is a goal to determine the gene type of S 
@@ -431,10 +427,16 @@ rule makeInferenceFromS1xS2_part_HD{
 }
 
 
-
 //TODO makeInferenceFromS1xS3_HET
-
-
+rule makeInferenceFromS1xS3_HET{
+    when{
+        prob: Problem prob.subgoal==="makeInferences";
+        s1: Strain s1.finalConclusion==="homezygous recessive" {phenotype:p};
+        s3: Strain s3.finalConclusion=="" && s3.phenotype!==p;
+    }then{
+        modify(s3, "finalConclusion", "heterozygous");
+    }
+}
 
 //TODO makeInferenceFromTwoPartial - This rule makes inference of final conclusion when both partial conclusions has been made for one strain
 
@@ -454,7 +456,6 @@ rule doneInferencing {
 	}
 }
 
-
 //--------------------------------------------------------------------------------------------
 //
 // Rules for the enterInferences subgoal
@@ -463,44 +464,113 @@ rule doneInferencing {
 //
 //--------------------------------------------------------------------------------------------
 
-rule enterInference_partial{
+rule enterHR{
     when{
-        prob: Problem prob.subgoal === "enterInferences";
-        s1: Strain  (s1.partialConclusions!==[] && s1.partialConclusionWritten === false)
-          {partialConclusions: pC, iePartialConclusions: ieP};
-    }
-    then{
-        if(checkSAI({selection: ieP, action: "UpdateComboBox", input: pC},
-        function(studentSAI, tutorSAI){
-            console.log("student input: " + studentSAI.input + " | tutor expects: " + tutorSAI.input);
-            let ret = (tutorSAI.input.includes(studentSAI.input));
-            console.log("SAI Match result: " + ret);
-            return ret;
-        }
-        )){
-            modify(s1, "partialConclusionWritten", true);
-            halt();
+        prob: Problem prob.subgoal==="enterInferences" {strains: s};
+        s1: Strain s.includes(s1.name) && s1.finalConclusion==="homozygous recessive" && s1.finalConclusionWritten === false {finalConclusion: f, ieFinalConclusion: ie};
+    }then{
+        if(checkSAI({selection: ie, action: "UpdateComboBox", input: f})){
+            modify(s1, "finalConclusionWritten", true);
+            modify(prob, "subgoal", "makeInferences");
         }else{
             backtrack();
         }
     }
 }
 
- rule enterInference_final{
+rule enterHD{
     when{
-        prob: Problem prob.subgoal === "enterInferences";
-        s1: Strain s1.finalConclusion!=="" && s1.finalConclusionWritten == false
-          {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC,ieFinalConclusion: ieF};
-    }
-    then{
-        if(checkSAI({selection: ieF, action: "UpdateComboBox", input: fC})){
+        prob: Problem prob.subgoal==="enterInferences" {strains: s};
+        s1: Strain s.includes(s1.name) && s1.finalConclusion==="homozygous dominant" && s1.finalConclusionWritten === false {finalConclusion: f, ieFinalConclusion: ie};
+    }then{
+        if(checkSAI({selection: ie, action: "UpdateComboBox", input: f})){
             modify(s1, "finalConclusionWritten", true);
-            halt();
+            modify(prob, "subgoal", "makeInferences");
         }else{
             backtrack();
         }
     }
 }
+
+rule enterHET{
+    when{
+        prob: Problem prob.subgoal==="enterInferences" {strains: s};
+        s1: Strain s.includes(s1.name) && s1.finalConclusion==="heterozygous" && s1.finalConclusionWritten === false {finalConclusion: f, ieFinalConclusion: ie};
+    }then{
+        if(checkSAI({selection: ie, action: "UpdateComboBox", input: f})){
+            modify(s1, "finalConclusionWritten", true);
+            modify(prob, "subgoal", "makeInferences");
+        }else{
+            backtrack();
+        }
+    }
+}
+
+rule enterPartialH{
+    when{
+        prob: Problem prob.subgoal==="enterInferences" {strains: s};
+        s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous") && s1.partialConclusionWritten === false && s1.finalConclusionWritten === false {partialConclusions: p, iePartialConclusions: ie};
+    }then{
+        if(checkSAI({selection: ie, action: "UpdateComboBox", input: "homozygous"})){
+            modify(s1, "finalConclusionWritten", true);
+            modify(prob, "subgoal", "makeInferences");
+        }else{
+            backtrack();
+        }
+    }
+}
+
+rule enterPartialHETOrHR{
+    when{
+        prob: Problem prob.subgoal==="enterInferences" {strains: s};
+        s1: Strain s.includes(s1.name) && s1.partialConclusions.includes("homozygous recessive or heterozygous") && s1.partialConclusionWritten === false && s1.finalConclusionWritten === false {partialConclusions: p, iePartialConclusions: ie};
+    }then{
+        if(checkSAI({selection: ie, action: "UpdateComboBox", input: "homozygous recessive or heterozygous"})){
+            modify(s1, "finalConclusionWritten", true);
+            modify(prob, "subgoal", "makeInferences");
+        }else{
+            backtrack();
+        }
+    }
+}
+//rule enterInference_partial{
+//    when{
+//        prob: Problem prob.subgoal === "enterInferences";
+//        s1: Strain  (s1.partialConclusions!==[] && s1.partialConclusionWritten === false)
+//          {partialConclusions: pC, iePartialConclusions: ieP};
+//    }
+//    then{
+//        if(checkSAI({selection: ieP, action: "UpdateComboBox", input: pC},
+//        function(studentSAI, tutorSAI){
+//            console.log("student input: " + studentSAI.input + " | tutor expects: " + tutorSAI.input);
+//            let ret = (tutorSAI.input.includes(studentSAI.input));
+//            console.log("SAI Match result: " + ret);
+//            return ret;
+//        }
+//        )){
+//            modify(s1, "partialConclusionWritten", true);
+//            halt();
+//        }else{
+//            backtrack();
+//        }
+//    }
+//}
+//
+// rule enterInference_final{
+//    when{
+//        prob: Problem prob.subgoal === "enterInferences";
+//        s1: Strain s1.finalConclusion!=="" && s1.finalConclusionWritten == false
+//          {partialConclusions: pC, iePartialConclusions: ieP, finalConclusion: fC,ieFinalConclusion: ieF};
+//    }
+//    then{
+//        if(checkSAI({selection: ieF, action: "UpdateComboBox", input: fC})){
+//            modify(s1, "finalConclusionWritten", true);
+//            halt();
+//        }else{
+//            backtrack();
+//        }
+//    }
+//}
 
 
 rule doneWithMandatoryInput {
