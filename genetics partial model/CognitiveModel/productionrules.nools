@@ -365,14 +365,14 @@ rule makeInferenceFromS1xS3_HR{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
-        s2: Strain s2.finalConclusion=="" s2.phenotype!==p;
+        s3: Strain s3.finalConclusion=="" s3.phenotype!==p;
     }then{
-        modify(s2, "finalConclusion", "homozygous recessive");
+        modify(s3, "finalConclusion", "homozygous recessive");
     }
 }
 
 //TODO makeInferenceFromS1xS2_HET
-rule makeInferenceFromS1xS3_HR{
+rule makeInferenceFromS1xS2_HET{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
@@ -383,7 +383,7 @@ rule makeInferenceFromS1xS3_HR{
 }
 
 //TODO makeInferenceFromS1xS2_part_HD
-rule makeInferenceFromS1xS3_HR{
+rule makeInferenceFromS1xS2_part_HD{
     when{
         prob: Problem prob.subgoal==="makeInferences";
         s1: Strain s1.finalConclusion==="heterozygous" || s1.finalConclusion==="homozygous dominant" {phenotype:p};
@@ -393,6 +393,15 @@ rule makeInferenceFromS1xS3_HR{
     }
 }
 //TODO makeInferenceFromS1xS3_HET
+rule makeInferenceFromS1xS3_HET{
+    when{
+        prob: Problem prob.subgoal==="makeInferences";
+        s1: Strain s1.finalConclusion==="homezygous recessive" {phenotype:p};
+        s3: Strain s3.finalConclusion=="" s3.phenotype!==p;
+    }then{
+        modify(s3, "finalConclusion", "heterozygous");
+    }
+}
 //TODO makeInferenceFromTwoPartial - This rule makes inference of final conclusion when both partial conclusions has been made for one strain
 
 
