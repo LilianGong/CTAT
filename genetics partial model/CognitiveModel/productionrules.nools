@@ -396,6 +396,7 @@ rule makeInferenceFromS1xS3_HR{
 // And S2’s partial conclusion is “Heterozygous or Homozygous recessive”
 // THEN
 // Write S2’s final conclusion as Heterozygous
+
 rule makeInferenceFromS1xS2_HET{
     when{
         prob: Problem prob.subgoal==="makeInferences";
@@ -428,6 +429,12 @@ rule makeInferenceFromS1xS2_part_HD{
 
 
 //TODO makeInferenceFromS1xS3_HET
+// IF there is a goal to determine the gene type of S 
+// And S1’s final conclusion is Homozygous Recessive
+// And the phenotype of S1 is different from the phenotype of S3
+// And S3’s partial conclusion is “Heterozygous or Homozygous recessive”
+// THEN
+// Write S3’s final conclusion as Heterozygous
 rule makeInferenceFromS1xS3_HET{
     when{
         prob: Problem prob.subgoal==="makeInferences";
@@ -479,6 +486,7 @@ rule enterHR{
         if(checkSAI({selection: ie, action: "UpdateComboBox", input: f})){
             modify(s1, "finalConclusionWritten", true);
             modify(prob, "subgoal", "makeInferences");
+            //halt();
         }else{
             backtrack();
         }
